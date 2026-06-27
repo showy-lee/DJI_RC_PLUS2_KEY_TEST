@@ -1,114 +1,115 @@
-# DJI SDK 模块分析
+# DJI RC Plus 2 Key Test
 
+这是一个用于 DJI RC Plus 2 遥控器按键、摇杆、拨轮和五维键检测的小工具。项目基于 DJI MSDK V5，当前主要目标是保留遥控器按键测试能力，同时尽量减小 APK 体积。
 
-## 已成功删除的模块 ✅
+## 当前版本
 
-### 1. UX SDK 模块（约 30MB）✅
-- 地图库（MapLibre）
-- 动画库（Lottie）
-- Google Play Services
-- 各种图标库
+- `applicationId`: `com.example.msdksample`
+- `versionName`: `1.1`
+- `versionCode`: `2`
+- DJI SDK: `com.dji:dji-sdk-v5-aircraft:5.18.0`
+- 当前 release APK: `app/build/outputs/apk/release/app-release.apk`
+- 当前包体大小: `75,110,949` bytes，约 `71.6 MiB` / `75.1 MB`
 
-### 2. 视频编解码模块（FFmpeg，约 16MB）✅
-- `libavcodec.so` - 10.84 MB
-- `libavfilter.so` - 2.18 MB
-- `libavformat.so` - 1.96 MB
-- `libavutil.so` - 0.33 MB
-- `libavresample.so` - 0.06 MB
-- `libavdevice.so` - 0.05 MB
-- `libswscale.so` - 0.43 MB
-- `libswresample.so` - 0.08 MB
+## 功能
 
-### 3. 流媒体/直播模块（约 13MB）✅
-- `libmrtc_onvif.so` - 8.55 MB
-- `libmrtc_rtmp.so` - 1.80 MB
-- `libmrtc_rtsp.so` - 0.91 MB
-- `libmrtc_core.so` - 0.62 MB
-- `libmrtc_data.so` - 0.38 MB
-- `libmrtc_core_jni.so` - 0.36 MB
-- `libmrtc_28181.so` - 0.33 MB
-- `libmrtc_agora.so` - 0.13 MB
-- `libmrtc_webrtc.so` - 0.04 MB
-- `libmrtc_log.so` - 0.01 MB
+- DJI SDK 遥控器状态监听
+  - 左右摇杆
+  - 快门、录像、返航、暂停
+  - C1/C2/C3、自定义/认证灯按键
+  - 飞行模式档位
+  - 左右拨轮、滚轮
+  - 五维键
 
-### 4. 云服务/网络模块（约 35MB）✅
-- `libcloud_access_jni.so` - 19.83 MB
-- `libPPAL.so` - 13.93 MB
-- `libppal-jni.so` - 1.52 MB
+- Android `KeyEvent` 物理按键监听
+  - 显示最近一次按键事件
+  - 显示 `keyCode`、`scanCode`、`source`
+  - 保留最近 8 条事件历史
+  - 自动把新出现的 keyCode 加入界面观察列表
 
-### 5. Agora RTSA SDK（约 7.4MB）✅
-- `libagora-rtsa-sdk.so` - 7.43 MB
+- ESP32 测试页
+  - 使用左摇杆水平值映射舵机角度
+  - 通过 Socket 向 ESP32 发送角度
 
-**已删除总计：约 101MB**
+## 已确认的 RC Plus 2 按键映射
 
----
+设备侧 `/system/usr/keylayout/gpio-keys.kl` 将 DJI 物理 L1-L3/R1-R3 映射为 Android `F1-F6`：
 
-## 当前剩余的模块
+| 物理按键 | Android keyCode |
+| --- | --- |
+| L1 | `KEYCODE_F1` / `131` |
+| L2 | `KEYCODE_F2` / `132` |
+| L3 | `KEYCODE_F3` / `133` |
+| R1 | `KEYCODE_F4` / `134` |
+| R2 | `KEYCODE_F5` / `135` |
+| R3 | `KEYCODE_F6` / `136` |
 
-### 1. 核心 SDK 模块（必需，约 92MB）
-- `libdjisdk_jni.so` - 65.04 MB ⭐ **最大**
-- `libdjibase.so` - 25.28 MB
-- `libDJIRegister.so` - 1.00 MB
-- `libDJICSDKCommon.so` - 0.17 MB
-- `libconstants.so` - 0.25 MB
-- `libc++_shared.so` - 1.01 MB
+另外，机身录像/拍照键来自 `DJI embedded joystick` 输入设备：
 
+| 功能 | Android keyCode | scanCode |
+| --- | --- | --- |
+| Record | `KEYCODE_BUTTON_L1` / `102` | `310` |
+| Shutter full press | `KEYCODE_BUTTON_R1` / `103` | `311` |
 
-### 3. 飞控/安全模块（约 27MB）❌ **测试失败，不能删除**
-- `libDJIFlySafeCore-CSDK.so` - 10.41 MB
-- `libDJIUpgradeCore.so` - 8.27 MB
-- `libDJIWaypointV2Core-CSDK.so` - 3.41 MB
-- `libFlightRecordEngine.so` - 2.38 MB
-- `libDJIUpgradeJNI.so` - 1.93 MB
-- `libdjifs_jni-CSDK.so` - 0.96 MB
-- `libdjiwpv2-CSDK.so` - 0.21 MB
+快门半按没有暴露为普通 Android `KeyEvent`。也尝试过 raw input、DJI RC Key、Camera Focus Key 和 joystick motion 诊断，均没有稳定可用事件；当前版本已移除这些半按快门实验代码。
 
-### 4. 视频处理模块（约 0.7MB）❓ **部分可删除**
-- `libwaes.so` - 0.06 MB
-- `libDJIOpus.so` - 0.20 MB
-- `libopus.so` - 0.40 MB
-- ~~`libagora-rtsa-sdk.so` - 7.43 MB~~ ✅ **已删除**
+## APK 瘦身策略
 
-### 5. RTK 定位模块（约 0.2MB）❓ **未测试**
-- `librtcm.so` - 0.20 MB
+当前包体相比原始 DJI MSDK 示例已经明显缩小。主要处理如下：
 
-### 6. 数据/存储模块（约 15MB）❓ **未测试**
-- `libdataclx.so` - 8.89 MB
-- `libsqlcipher.so` - 3.36 MB
-- `libDJIProtobuf.so` - 2.32 MB
-- `libDJIFileSystem.so` - 0.80 MB
-- `libhash.so` - 0.22 MB
+- 移除 UX SDK 模块
+  - `settings.gradle` 中不再 include `android-sdk-v5-uxsdk`
+  - 不打包地图、动画、图标等 UX 组件
 
-### 7. 其他工具模块（约 7MB）❓ **未测试**
-- `libwpmz_jni.so` - 6.23 MB
-- `libSdkyclx_clx.so` - 0.84 MB
-- `libdcl_jni.so` - 0.19 MB
-- `libartcm_jni.so` - 0.12 MB
-- `libxcrash_dumper.so` - 0.11 MB
-- `libxcrash.so` - 0.07 MB
-- `libntp_client.so` - 0.01 MB
+- 仅保留 `arm64-v8a`
+  - `abiFilters 'arm64-v8a'`
+  - RC Plus 2 使用 arm64，避免打包多 ABI so
 
----
+- 限制资源语言
+  - `resourceConfigurations += ['en', 'zh-rCN']`
 
-## 测试结果总结
+- 排除当前测试工具不需要的 native 库
+  - FFmpeg: `libavcodec.so`、`libavformat.so`、`libswscale.so` 等
+  - MRTC/直播: `libmrtc_*`、`libndi.so`
+  - 云接入/PPAL: `libcloud_access_jni.so`、`libPPAL.so`、`libppal-jni.so`
+  - Agora: `libagora-*`
 
-### ✅ 可以删除的模块
-1. **UX SDK 模块** - 约 30MB（已删除）
-2. **视频编解码模块（FFmpeg）** - 约 16MB（已删除）
-3. **流媒体/直播模块** - 约 13MB（已删除）
-4. **云服务/网络模块** - 约 35MB（已删除）
-5. **Agora RTSA SDK** - 约 7.4MB（已删除）
+保留的 DJI 核心库不要继续盲删，否则容易导致 SDK 注册、遥控器 Key 监听或应用启动失败。
 
-### ❌ 不能删除的模块（会导致崩溃）
-1. **飞控/安全模块** - 约 27MB（被核心模块依赖）
-2. **视频处理模块（部分）** - 约 0.7MB（`libwaes.so`、`libDJIOpus.so`、`libopus.so` 不能删除）
-3. **其他工具模块** - 约 7MB（被核心模块依赖）
-4. **数据/存储模块** - 约 15MB（被核心模块依赖）
+## 构建
 
-### ❓ 未测试的模块（可以尝试删除）
-1. **RTK 定位模块** - 约 0.2MB
+```bash
+./gradlew :app:assembleRelease
+```
 
----
+Windows PowerShell:
 
+```powershell
+.\gradlew :app:assembleRelease
+```
 
+构建产物：
 
+```text
+app/build/outputs/apk/release/app-release.apk
+```
+
+当前 release 使用 debug signing config 签名，方便直接安装到测试遥控器。
+
+## 安装
+
+```bash
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+启动主测试页：
+
+```bash
+adb shell am start -n com.example.msdksample/.JoystickTestActivity
+```
+
+## 已知限制
+
+- 快门半按目前无法在第三方 APK 中可靠捕获。
+- APK 仍然较大，主要由 DJI MSDK 核心 native 库决定。
+- ESP32 页面的中文注释/部分字符串来自原项目，后续可以单独整理编码和文案。
