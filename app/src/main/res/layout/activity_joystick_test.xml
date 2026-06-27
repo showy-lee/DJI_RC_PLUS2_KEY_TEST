@@ -201,33 +201,6 @@
             android:textColor="#333333"
             android:textSize="10sp" />
 
-        <TextView
-            android:id="@+id/tv_camera_focus_state"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:text="Camera focus: none"
-            android:textColor="#333333"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/tv_camera_focus_target_event"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:text="Focus event: none"
-            android:textColor="#333333"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/tv_camera_triggering_shutter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:text="Camera shutter: UP"
-            android:textColor="#333333"
-            android:textSize="10sp" />
-
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -296,15 +269,6 @@
             android:layout_height="wrap_content"
             android:padding="2dp"
             android:text="Last event: none"
-            android:textColor="#333333"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/tv_physical_motion_event"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:text="Motion: none"
             android:textColor="#333333"
             android:textSize="10sp" />
 
