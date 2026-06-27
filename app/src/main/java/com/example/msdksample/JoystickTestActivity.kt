@@ -29,8 +29,6 @@ class JoystickTestActivity : AppCompatActivity() {
     private lateinit var tvRightVertical: TextView
 
     private lateinit var tvShutterButton: TextView
-    private lateinit var tvShutterLongPress: TextView
-    private lateinit var tvRcButtonEvent: TextView
     private lateinit var tvRecordButton: TextView
     private lateinit var tvGoHomeButton: TextView
     private lateinit var tvPauseButton: TextView
@@ -57,12 +55,7 @@ class JoystickTestActivity : AppCompatActivity() {
         KeyEvent.KEYCODE_F3,
         KeyEvent.KEYCODE_F4,
         KeyEvent.KEYCODE_F5,
-        KeyEvent.KEYCODE_F6,
-        KeyEvent.KEYCODE_BUTTON_L1,
-        KeyEvent.KEYCODE_BUTTON_R1,
-        KeyEvent.KEYCODE_FOCUS,
-        KeyEvent.KEYCODE_CAMERA,
-        KeyEvent.KEYCODE_MEDIA_RECORD
+        KeyEvent.KEYCODE_F6
     )
     private val physicalKeyCodes = defaultPhysicalKeyCodes.toMutableList()
     private val physicalKeyStates = mutableMapOf<Int, Boolean>()
@@ -81,17 +74,16 @@ class JoystickTestActivity : AppCompatActivity() {
         KeyEvent.KEYCODE_F10 to "F10",
         KeyEvent.KEYCODE_F11 to "F11",
         KeyEvent.KEYCODE_F12 to "F12",
-        KeyEvent.KEYCODE_BUTTON_L1 to "Record / BUTTON_L1",
-        KeyEvent.KEYCODE_BUTTON_R1 to "Shutter full / BUTTON_R1",
+        KeyEvent.KEYCODE_BUTTON_L1 to "BUTTON_L1",
+        KeyEvent.KEYCODE_BUTTON_R1 to "BUTTON_R1",
         KeyEvent.KEYCODE_BUTTON_L2 to "BUTTON_L2",
         KeyEvent.KEYCODE_BUTTON_R2 to "BUTTON_R2",
         KeyEvent.KEYCODE_BUTTON_THUMBL to "BUTTON_THUMBL",
         KeyEvent.KEYCODE_BUTTON_THUMBR to "BUTTON_THUMBR",
         KeyEvent.KEYCODE_BUTTON_SELECT to "BUTTON_SELECT",
         KeyEvent.KEYCODE_BUTTON_START to "BUTTON_START",
-        KeyEvent.KEYCODE_CAMERA to "Camera / CAMERA",
-        KeyEvent.KEYCODE_FOCUS to "Shutter half / FOCUS",
-        KeyEvent.KEYCODE_MEDIA_RECORD to "Record / MEDIA_RECORD",
+        KeyEvent.KEYCODE_CAMERA to "CAMERA",
+        KeyEvent.KEYCODE_FOCUS to "FOCUS",
         KeyEvent.KEYCODE_VOLUME_UP to "VOLUME_UP",
         KeyEvent.KEYCODE_VOLUME_DOWN to "VOLUME_DOWN",
         KeyEvent.KEYCODE_DPAD_UP to "DPAD_UP",
@@ -140,8 +132,6 @@ class JoystickTestActivity : AppCompatActivity() {
         tvRightVertical = findViewById(R.id.tv_right_vertical)
 
         tvShutterButton = findViewById(R.id.tv_shutter_button)
-        tvShutterLongPress = findViewById(R.id.tv_shutter_long_press)
-        tvRcButtonEvent = findViewById(R.id.tv_rc_button_event)
         tvRecordButton = findViewById(R.id.tv_record_button)
         tvGoHomeButton = findViewById(R.id.tv_gohome_button)
         tvPauseButton = findViewById(R.id.tv_pause_button)
@@ -239,24 +229,6 @@ class JoystickTestActivity : AppCompatActivity() {
     private fun startListeningButtons() {
         RemoteControllerKey.KeyShutterButtonDown.create().listen(this) { value ->
             updateBooleanStatus(tvShutterButton, "Shutter", value)
-        }
-
-        try {
-            RemoteControllerKey.KeyRCShutterButtonLongPress.create().listen(this) { value ->
-                updateBooleanStatus(tvShutterLongPress, "Shutter long", value)
-            }
-        } catch (e: Exception) {
-            LogUtils.e(tag, "Shutter long press listener failed: ${e.message}")
-            runOnUiThread { tvShutterLongPress.text = "Shutter long: unsupported" }
-        }
-
-        try {
-            RemoteControllerKey.KeyRcButtonEventPro.create().listen(this) { value ->
-                updateRcButtonEventStatus(value)
-            }
-        } catch (e: Exception) {
-            LogUtils.e(tag, "RC button event listener failed: ${e.message}")
-            runOnUiThread { tvRcButtonEvent.text = "RC event pro: unsupported" }
         }
 
         RemoteControllerKey.KeyRecordButtonDown.create().listen(this) { value ->
@@ -441,36 +413,6 @@ class JoystickTestActivity : AppCompatActivity() {
             recentPhysicalEvents.removeLast()
         }
         tvPhysicalHistory.text = recentPhysicalEvents.joinToString(separator = "\n")
-    }
-
-    private fun updateRcButtonEventStatus(value: Any?) {
-        runOnUiThread {
-            tvRcButtonEvent.text = "RC event pro: ${formatRcButtonEvent(value)}"
-            tvRcButtonEvent.setTextColor(getColor(android.R.color.holo_green_dark))
-        }
-    }
-
-    private fun formatRcButtonEvent(value: Any?): String {
-        if (value == null) return "null"
-        val parts = mutableListOf<String>()
-        for (getter in listOf(
-            "getValue",
-            "getButtonActionValue",
-            "getIsC1Click",
-            "getIsC2Click",
-            "getIsC3Click",
-            "getIsC4Click"
-        )) {
-            runCatching {
-                val method = value.javaClass.getMethod(getter)
-                val result = method.invoke(value)
-                parts.add("${getter.removePrefix("get")}=$result")
-            }
-        }
-        if (parts.isEmpty()) {
-            parts.add(value.toString())
-        }
-        return parts.joinToString(separator = " ")
     }
 
     private fun keyLabel(keyCode: Int): String {
