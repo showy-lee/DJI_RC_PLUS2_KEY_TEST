@@ -138,6 +138,11 @@
                     android:text="Shutter: UP" />
 
                 <TextView
+                    android:id="@+id/tv_shutter_long_press"
+                    style="@style/StatusText"
+                    android:text="Shutter long: UP" />
+
+                <TextView
                     android:id="@+id/tv_record_button"
                     style="@style/StatusText"
                     android:text="Record: UP" />
@@ -186,6 +191,15 @@
                     android:text="Flight mode switch: unknown" />
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_rc_button_event"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:text="RC event pro: none"
+            android:textColor="#333333"
+            android:textSize="10sp" />
 
         <View
             android:layout_width="match_parent"
