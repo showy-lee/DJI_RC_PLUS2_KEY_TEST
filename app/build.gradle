@@ -12,93 +12,94 @@ android {
         applicationId "com.example.msdksample"
         minSdk 24
         targetSdk 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        resourceConfigurations += ['en', 'zh-rCN']
 
         ndk {
-            abiFilters 'arm64-v8a' // 当前MSDK只支持arm64-v8a架构
+            abiFilters 'arm64-v8a'
         }
+    }
 
-        // MSDK相关的so库配置
-        packagingOptions {
-            pickFirst 'lib/arm64-v8a/libc++_shared.so'
-            pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-            
-            // 核心库（必需）- 保持原有的 doNotStrip 配置
-            doNotStrip "*/*/libconstants.so"
-            doNotStrip "*/*/libdji_innertools.so"
-            doNotStrip "*/*/libdjibase.so"
-            doNotStrip "*/*/libDJICSDKCommon.so"
-            doNotStrip "*/*/libDJIRegister.so"
-            doNotStrip "*/*/libdjisdk_jni.so"
-            doNotStrip "*/*/libc++.so"
-            doNotStrip "*/*/libc++_shared.so"
-            
-            // ========== 已删除视频编解码模块（FFmpeg，约16MB） ==========
-            exclude 'lib/arm64-v8a/libavcodec.so'
-            exclude 'lib/arm64-v8a/libavfilter.so'
-            exclude 'lib/arm64-v8a/libavformat.so'
-            exclude 'lib/arm64-v8a/libavutil.so'
-            exclude 'lib/arm64-v8a/libavresample.so'
-            exclude 'lib/arm64-v8a/libavdevice.so'
-            exclude 'lib/arm64-v8a/libswscale.so'
-            exclude 'lib/arm64-v8a/libswresample.so'
-            
-            // ========== 已删除流媒体/直播模块（约13MB） ==========
-            exclude 'lib/arm64-v8a/libmrtc_onvif.so'
-            exclude 'lib/arm64-v8a/libmrtc_rtmp.so'
-            exclude 'lib/arm64-v8a/libmrtc_rtsp.so'
-            exclude 'lib/arm64-v8a/libmrtc_core.so'
-            exclude 'lib/arm64-v8a/libmrtc_data.so'
-            exclude 'lib/arm64-v8a/libmrtc_core_jni.so'
-            exclude 'lib/arm64-v8a/libmrtc_28181.so'
-            exclude 'lib/arm64-v8a/libmrtc_agora.so'
-            exclude 'lib/arm64-v8a/libmrtc_webrtc.so'
-            exclude 'lib/arm64-v8a/libmrtc_log.so'
-            
-            // ========== 已删除云服务/网络模块（约35MB） ==========
-            // 这些模块用于云服务访问和网络功能
-            exclude 'lib/arm64-v8a/libcloud_access_jni.so'
-            exclude 'lib/arm64-v8a/libPPAL.so'
-            exclude 'lib/arm64-v8a/libppal-jni.so'
-            
-            // ========== 已删除 Agora RTSA SDK（约7.4MB） ==========
-            // 只删除这个库，保留其他视频处理模块
-            exclude 'lib/arm64-v8a/libagora-rtsa-sdk.so'
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+            pickFirsts += ['lib/arm64-v8a/libc++_shared.so', 'lib/armeabi-v7a/libc++_shared.so']
+            keepDebugSymbols += [
+                    '**/libconstants.so',
+                    '**/libdji_innertools.so',
+                    '**/libdjibase.so',
+                    '**/libDJICSDKCommon.so',
+                    '**/libDJIRegister.so',
+                    '**/libdjisdk_jni.so',
+                    '**/libc++.so',
+                    '**/libc++_shared.so'
+            ]
+            excludes += [
+                    'lib/arm64-v8a/libavcodec.so',
+                    'lib/arm64-v8a/libavfilter.so',
+                    'lib/arm64-v8a/libavformat.so',
+                    'lib/arm64-v8a/libavutil.so',
+                    'lib/arm64-v8a/libavresample.so',
+                    'lib/arm64-v8a/libavdevice.so',
+                    'lib/arm64-v8a/libswscale.so',
+                    'lib/arm64-v8a/libswresample.so',
+                    'lib/arm64-v8a/libmrtc_onvif.so',
+                    'lib/arm64-v8a/libmrtc_rtmp.so',
+                    'lib/arm64-v8a/libmrtc_rtsp.so',
+                    'lib/arm64-v8a/libmrtc_core.so',
+                    'lib/arm64-v8a/libmrtc_data.so',
+                    'lib/arm64-v8a/libmrtc_core_jni.so',
+                    'lib/arm64-v8a/libmrtc_28181.so',
+                    'lib/arm64-v8a/libmrtc_agora.so',
+                    'lib/arm64-v8a/libmrtc_webrtc.so',
+                    'lib/arm64-v8a/libmrtc_log.so',
+                    'lib/arm64-v8a/libmrtc_ndi.so',
+                    'lib/arm64-v8a/libndi.so',
+                    'lib/arm64-v8a/libmrtc_28181_server.so',
+                    'lib/arm64-v8a/libmrtc_onvif_client.so',
+                    'lib/arm64-v8a/libmrtc_volc.so',
+                    'lib/arm64-v8a/libmrtc_webrtc_recv.so',
+                    'lib/arm64-v8a/libcloud_access_jni.so',
+                    'lib/arm64-v8a/libPPAL.so',
+                    'lib/arm64-v8a/libppal-jni.so',
+                    'lib/arm64-v8a/libagora-fdkaac.so',
+                    'lib/arm64-v8a/libagora-ffmpeg.so',
+                    'lib/arm64-v8a/libagora-rtc-sdk.so',
+                    'lib/arm64-v8a/libagora-rtsa-sdk.so',
+                    'lib/arm64-v8a/libagora-soundtouch.so'
+            ]
         }
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.debug
             minifyEnabled false
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
 }
 
 dependencies {
-
-    // 移除 UX SDK 模块（包含地图、动画等不需要的功能）
-    // 注意：如果编译失败，可能需要保留这个依赖
-    // implementation project(":android-sdk-v5-uxsdk")
-    
-    // DJI SDK - 核心SDK（按键功能只需要这个）
-    // 注意：上面的 packagingOptions 会在打包时排除不需要的 .so 文件
-    implementation 'com.dji:dji-sdk-v5-aircraft:5.17.0'
-    compileOnly 'com.dji:dji-sdk-v5-aircraft-provided:5.17.0'
+    implementation 'com.dji:dji-sdk-v5-aircraft:5.18.0'
+    compileOnly 'com.dji:dji-sdk-v5-aircraft-provided:5.18.0'
 
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
