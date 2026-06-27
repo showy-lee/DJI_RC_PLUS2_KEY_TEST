@@ -5,10 +5,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import dji.sdk.keyvalue.key.DJICameraKey
 import dji.sdk.keyvalue.key.RemoteControllerKey
 import dji.v5.et.create
 import dji.v5.et.listen
@@ -31,6 +33,9 @@ class JoystickTestActivity : AppCompatActivity() {
     private lateinit var tvShutterButton: TextView
     private lateinit var tvShutterLongPress: TextView
     private lateinit var tvRcButtonEvent: TextView
+    private lateinit var tvCameraFocusState: TextView
+    private lateinit var tvCameraFocusTargetEvent: TextView
+    private lateinit var tvCameraTriggeringShutter: TextView
     private lateinit var tvRecordButton: TextView
     private lateinit var tvGoHomeButton: TextView
     private lateinit var tvPauseButton: TextView
@@ -47,6 +52,7 @@ class JoystickTestActivity : AppCompatActivity() {
 
     private lateinit var tvConnectionStatus: TextView
     private lateinit var tvPhysicalLastEvent: TextView
+    private lateinit var tvPhysicalMotionEvent: TextView
     private lateinit var tvPhysicalHistory: TextView
     private lateinit var btnTab: Button
     private lateinit var physicalSlots: List<TextView>
@@ -142,6 +148,9 @@ class JoystickTestActivity : AppCompatActivity() {
         tvShutterButton = findViewById(R.id.tv_shutter_button)
         tvShutterLongPress = findViewById(R.id.tv_shutter_long_press)
         tvRcButtonEvent = findViewById(R.id.tv_rc_button_event)
+        tvCameraFocusState = findViewById(R.id.tv_camera_focus_state)
+        tvCameraFocusTargetEvent = findViewById(R.id.tv_camera_focus_target_event)
+        tvCameraTriggeringShutter = findViewById(R.id.tv_camera_triggering_shutter)
         tvRecordButton = findViewById(R.id.tv_record_button)
         tvGoHomeButton = findViewById(R.id.tv_gohome_button)
         tvPauseButton = findViewById(R.id.tv_pause_button)
@@ -157,6 +166,7 @@ class JoystickTestActivity : AppCompatActivity() {
         tvFiveDimension = findViewById(R.id.tv_five_dimension)
 
         tvPhysicalLastEvent = findViewById(R.id.tv_physical_last_event)
+        tvPhysicalMotionEvent = findViewById(R.id.tv_physical_motion_event)
         tvPhysicalHistory = findViewById(R.id.tv_physical_history)
         physicalSlots = listOf(
             findViewById(R.id.tv_physical_button1),
@@ -200,6 +210,7 @@ class JoystickTestActivity : AppCompatActivity() {
 
         startListeningSticks()
         startListeningButtons()
+        startListeningCameraDiagnostics()
         startListeningDials()
         startListeningFiveDimension()
         startListeningFlightModeSwitch()
@@ -293,6 +304,35 @@ class JoystickTestActivity : AppCompatActivity() {
         }
     }
 
+    private fun startListeningCameraDiagnostics() {
+        try {
+            DJICameraKey.KeyCameraFocusState.create().listen(this) { value ->
+                updateValueStatus(tvCameraFocusState, "Camera focus", value)
+            }
+        } catch (e: Exception) {
+            LogUtils.e(tag, "Camera focus state listener failed: ${e.message}")
+            runOnUiThread { tvCameraFocusState.text = "Camera focus: unsupported" }
+        }
+
+        try {
+            DJICameraKey.KeyCameraFocusTargetEvent.create().listen(this) { value ->
+                updateValueStatus(tvCameraFocusTargetEvent, "Focus event", value)
+            }
+        } catch (e: Exception) {
+            LogUtils.e(tag, "Camera focus target event listener failed: ${e.message}")
+            runOnUiThread { tvCameraFocusTargetEvent.text = "Focus event: unsupported" }
+        }
+
+        try {
+            DJICameraKey.KeyIsTriggeringShutter.create().listen(this) { value ->
+                updateBooleanStatus(tvCameraTriggeringShutter, "Camera shutter", value)
+            }
+        } catch (e: Exception) {
+            LogUtils.e(tag, "Camera shutter listener failed: ${e.message}")
+            runOnUiThread { tvCameraTriggeringShutter.text = "Camera shutter: unsupported" }
+        }
+    }
+
     private fun startListeningFlightModeSwitch() {
         try {
             RemoteControllerKey.KeyFlightModeSwitchState.create().listen(this) { value ->
@@ -365,6 +405,13 @@ class JoystickTestActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateValueStatus(view: TextView, label: String, value: Any?) {
+        runOnUiThread {
+            view.text = "$label: ${value ?: "null"}"
+            view.setTextColor(getColor(android.R.color.holo_green_dark))
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN || event.action == KeyEvent.ACTION_UP) {
             handlePhysicalKeyEvent(event)
@@ -373,6 +420,18 @@ class JoystickTestActivity : AppCompatActivity() {
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_MOVE) {
+            val motionText = formatMotionEvent(event)
+            LogUtils.d(tag, "Physical motion event: $motionText")
+            runOnUiThread {
+                tvPhysicalMotionEvent.text = motionText
+                tvPhysicalMotionEvent.setTextColor(getColor(android.R.color.holo_green_dark))
+            }
+        }
+        return super.dispatchGenericMotionEvent(event)
     }
 
     private fun handlePhysicalKeyEvent(event: KeyEvent) {
@@ -471,6 +530,27 @@ class JoystickTestActivity : AppCompatActivity() {
             parts.add(value.toString())
         }
         return parts.joinToString(separator = " ")
+    }
+
+    private fun formatMotionEvent(event: MotionEvent): String {
+        val axes = listOf(
+            MotionEvent.AXIS_X to "X",
+            MotionEvent.AXIS_Y to "Y",
+            MotionEvent.AXIS_Z to "Z",
+            MotionEvent.AXIS_RX to "RX",
+            MotionEvent.AXIS_RY to "RY",
+            MotionEvent.AXIS_RZ to "RZ",
+            MotionEvent.AXIS_HAT_X to "HAT_X",
+            MotionEvent.AXIS_HAT_Y to "HAT_Y",
+            MotionEvent.AXIS_LTRIGGER to "LTRIG",
+            MotionEvent.AXIS_RTRIGGER to "RTRIG",
+            MotionEvent.AXIS_GAS to "GAS",
+            MotionEvent.AXIS_BRAKE to "BRAKE"
+        )
+        val axisText = axes.joinToString(separator = " ") { (axis, name) ->
+            "$name=${"%.2f".format(event.getAxisValue(axis))}"
+        }
+        return "Motion source=0x${event.source.toString(16)} device=${event.deviceId} $axisText"
     }
 
     private fun keyLabel(keyCode: Int): String {
